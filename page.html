@@ -177,7 +177,7 @@ function open(id){
   const row=(k,val)=>val?`<dt>${k}</dt><dd>${val}</dd>`:"";
   const tags=(a,g)=>a&&a.length?`<span class="tags">${a.map(t=>`<span class="tag ${g}">${esc(t)}</span>`).join("")}</span>`:"";
   const placed=!!(v.address||(v.lat!=null&&v.lng!=null));
-  const maps=placed?"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent([v.name,v.address||v.area].filter(Boolean).join(", ")):"https://www.google.com/search?q="+encodeURIComponent([v.name,v.area,"Southampton"].filter(Boolean).join(" "));
+  const maps=placed?"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent([v.name,v.address||v.area].filter(Boolean).join(", ")):"https://www.google.com/search?q="+encodeURIComponent(v.name+" Southampton");
   const dist=v.lat!=null&&v.lng!=null?(d=>d<1?Math.round(d*1000)+" m":d.toFixed(1)+" km")(km(v,BARGATE))+" from the Bargate":"";
   $("dlg").innerHTML=`<div class="dh"><h2 id="dName">${esc(v.name)}</h2><button type="button" class="close" aria-label="Close">×</button></div>
     <div class="sub">Visited ×${v.count}${last(v)?` · last ${esc(fmtM(last(v)))}`:""}</div>
