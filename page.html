@@ -84,7 +84,7 @@ dd{margin:0;font-size:15px}
 
 <div class="wrap">
   <h1>Where Southampton Food has <em>eaten</em></h1>
-  <p class="intro">Every restaurant, café, market and food event we've been to, including when we went and if it was an invite. Updated daily to maintain our ethos of honesty, integrity and openness. Each tile includes a Google Maps link (where a physical location applies) so you can see exactly where it is.</p>
+  <p class="intro">Every restaurant, café, market and food event we've been to, including when we went and if it was an invite. Updated daily to maintain our ethos of honesty, integrity and openness. Each venue includes a Google Maps link (where a physical location applies) so you can see exactly where it is.</p>
   <section class="band" aria-label="Totals" id="band"></section>
   <section class="controls" aria-label="Filter places">
     <input type="search" id="q" placeholder="Search by name, area or cuisine" aria-label="Search places">
@@ -176,7 +176,8 @@ function open(id){
   const hist=v=>v.visits.length?`<ul class="hist">${v.visits.slice().reverse().map(x=>`<li><span>${esc(fmtM(x.d))}</span>${x.inv===true?`<span class="pill red">Invited</span>`:x.inv===false?`<span class="pill line">Paid</span>`:`<span class="nr">Not recorded</span>`}</li>`).join("")}</ul>`:"";
   const row=(k,val)=>val?`<dt>${k}</dt><dd>${val}</dd>`:"";
   const tags=(a,g)=>a&&a.length?`<span class="tags">${a.map(t=>`<span class="tag ${g}">${esc(t)}</span>`).join("")}</span>`:"";
-  const maps="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent([v.name,v.address||v.area,"Southampton"].filter(Boolean).join(", "));
+  const placed=!!(v.address||(v.lat!=null&&v.lng!=null));
+  const maps=placed?"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent([v.name,v.address||v.area].filter(Boolean).join(", ")):"https://www.google.com/search?q="+encodeURIComponent([v.name,v.area,"Southampton"].filter(Boolean).join(" "));
   const dist=v.lat!=null&&v.lng!=null?(d=>d<1?Math.round(d*1000)+" m":d.toFixed(1)+" km")(km(v,BARGATE))+" from the Bargate":"";
   $("dlg").innerHTML=`<div class="dh"><h2 id="dName">${esc(v.name)}</h2><button type="button" class="close" aria-label="Close">×</button></div>
     <div class="sub">Visited ×${v.count}${last(v)?` · last ${esc(fmtM(last(v)))}`:""}</div>
@@ -187,7 +188,7 @@ function open(id){
       ${v.visits.length?"":row("Paid or invited",pay.join(" "))}${row("Visits",hist(v))}${row("Blog post",/^https:\/\//.test(v.blogUrl||"")?`<a class="bloglink" href="${esc(v.blogUrl)}" target="_blank" rel="noopener">Read the review ↗</a>`:v.blog?`<span class="pill line">Written</span>`:`<span class="pill line" style="color:var(--muted)">Coming soon</span>`)}
     </dl>
     <div class="loc"><span class="lab">Location</span>${dist?`<span class="meta">${dist}</span>`:""}${v.address?`<span>${esc(v.address)}</span>`:""}
-      <a href="${maps}" target="_blank" rel="noopener">Open in Google Maps ↗</a></div></div>`;
+      <a href="${maps}" target="_blank" rel="noopener">${placed?"Open in Google Maps ↗":"Search on Google ↗"}</a></div></div>`;
   $("dlg").querySelector(".close").addEventListener("click",()=>$("dlg").close());
   place();
   if(!$("dlg").open)$("dlg").showModal();
