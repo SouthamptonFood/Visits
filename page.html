@@ -60,7 +60,7 @@ h1 em{font-style:normal;color:var(--sf-red)}
 .flag.closed{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .flag.inv{border-color:var(--sf-red);color:var(--sf-red)}
 .empty{grid-column:1/-1;padding:28px;border:1.5px dashed var(--line);border-radius:4px;color:var(--muted);text-align:center}
-dialog{background:var(--bg);color:var(--ink);border:1.5px solid var(--line);border-radius:6px;padding:0;width:min(820px,calc(100vw - 32px));max-height:calc(100vh - 48px)}
+dialog{position:fixed;inset:auto 0 auto 0;margin:0 auto;overflow:auto;background:var(--bg);color:var(--ink);border:1.5px solid var(--line);border-radius:6px;padding:0;width:min(820px,calc(100vw - 32px));max-height:calc(100vh - 48px)}
 dialog::backdrop{background:rgba(0,0,0,.7)}
 .dh{display:flex;justify-content:space-between;gap:12px;padding:22px 22px 6px}
 .dh h2{margin:0;font-size:clamp(24px,4vw,34px);font-weight:800;line-height:1.05}
@@ -150,7 +150,23 @@ function render(){
       <span class="tags">${[...v.cuisine.map(c=>["cu",c]),...v.occasion.map(c=>["oc",c]),...(v.dietary||[]).map(c=>["di",c])].map(([g,c])=>`<span class="tag ${g}">${esc(c)}</span>`).join("")}</span>${invFlag(v)}</button>`}).join("")
     :`<div class="empty">Nothing matches those filters. Try a different year or cuisine.</div>`;
 }
-$("grid").addEventListener("click",e=>{const c=e.target.closest(".card");if(c)open(c.dataset.id)});
+// Where the reader can actually see the page. Inside a tall website embed the frame is taller than the screen,
+// so track the visible slice and place the popup there instead of the middle of the frame.
+let VIS=null;
+try{ new IntersectionObserver(es=>{const r=es[es.length-1].intersectionRect; VIS=r.height?{top:r.top,bottom:r.bottom}:null;},
+  {threshold:Array.from({length:201},(_,i)=>i/200)}).observe(document.body); }catch(e){}
+let anchorTop=null;
+$("grid").addEventListener("click",e=>{const c=e.target.closest(".card");if(c){anchorTop=c.getBoundingClientRect().top;open(c.dataset.id)}});
+function place(){
+  const d=$("dlg"), H=innerHeight;
+  const vt=VIS&&H>900?Math.max(0,VIS.top):0, vb=VIS&&H>900?Math.min(H,VIS.bottom):H; // only trust the slice in a tall frame
+  const room=Math.max(240,vb-vt-32);
+  d.style.maxHeight=room+"px";
+  const h=Math.min(d.scrollHeight||d.offsetHeight,room);
+  let top=anchorTop==null?vt+16:anchorTop-24;
+  top=Math.min(Math.max(top,vt+16),vb-h-16);
+  d.style.top=Math.max(vt+16,top)+"px";
+}
 
 function open(id){
   const v=V.find(x=>x.id===id);if(!v)return;
@@ -173,7 +189,9 @@ function open(id){
     <div class="loc"><span class="lab">Location</span>${dist?`<span class="meta">${dist}</span>`:""}${v.address?`<span>${esc(v.address)}</span>`:""}
       <a href="${maps}" target="_blank" rel="noopener">Open in Google Maps ↗</a></div></div>`;
   $("dlg").querySelector(".close").addEventListener("click",()=>$("dlg").close());
+  place();
   if(!$("dlg").open)$("dlg").showModal();
+  place();
 }
 $("dlg").addEventListener("click",e=>{if(e.target===$("dlg"))$("dlg").close()});
 drawTabs();render();
